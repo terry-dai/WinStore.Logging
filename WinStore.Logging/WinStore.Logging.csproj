@@ -41,9 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventListeners\FileEventListener.cs" />
-    <Compile Include="EventSources\EvengIds.cs" />
     <Compile Include="EventSources\LogEventSource.cs" />
-    <Compile Include="LoggingService.cs" />
+    <Compile Include="LoggingHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />

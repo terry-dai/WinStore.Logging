@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WinStore.Logging
 {
-    public class LoggingService
+    public class LoggingHelper
     {
         private static readonly FileEventListener FileListener = new FileEventListener();
         private static readonly LogEventSource LogEventSource = new LogEventSource();
@@ -17,6 +17,12 @@ namespace WinStore.Logging
         public static async Task InitializeLoggingServiceAsync(EventLevel logLevel)
         {
             await FileListener.InitializeAsync().ConfigureAwait(false);
+            FileListener.EnableEvents(LogEventSource, logLevel);
+        }
+
+        public static void SetEventLevel(EventLevel logLevel)
+        {
+            FileListener.DisableEvents(LogEventSource);
             FileListener.EnableEvents(LogEventSource, logLevel);
         }
 

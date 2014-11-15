@@ -18,14 +18,14 @@ namespace WinStore.Logging
     public class FileEventListener : EventListener
     {
         #region Fields
-        private List<string> logLines;
-        private ThreadPoolTimer periodicTimer;
+        private List<string> _logLines;
+        private ThreadPoolTimer _periodicTimer;
         private const int DefaultIntervalInSeconds = 5;
         private const string DefaultTimeFormat = "{0:yyyy-MM-dd HH\\:mm\\:ss\\:ffff}";
-        private IStorageFile logFile;
-        private readonly string logName;
-        private readonly string timeFormat;
-        private readonly SemaphoreSlim semaphore;
+        private IStorageFile _logFile;
+        private readonly string _logName;
+        private readonly string _timeFormat;
+        private readonly SemaphoreSlim _semaphore;
         private readonly int _writeIntervalInSeconds; 
         #endregion
 
@@ -38,15 +38,14 @@ namespace WinStore.Logging
         public FileEventListener(string name)
             : this(name, DefaultTimeFormat, DefaultIntervalInSeconds)
         {
-
         }
 
         public FileEventListener(string name, string timeFormat, int writeInterval)
         {
-            this.logLines = new List<string>();
-            this.logName = string.Format("{0}_log.csv", name.Replace(" ", "_"));
-            this.timeFormat = timeFormat;
-            this.semaphore = new SemaphoreSlim(1);
+            this._logLines = new List<string>();
+            this._logName = string.Format("{0}_log.csv", name.Replace(" ", "_"));
+            this._timeFormat = timeFormat;
+            this._semaphore = new SemaphoreSlim(1);
             this._writeIntervalInSeconds = writeInterval;
         } 
         #endregion
@@ -55,24 +54,20 @@ namespace WinStore.Logging
         // Should be called right after the constructor (since constructors can't have async calls)
         public async Task InitializeAsync()
         {
-            this.logFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(this.logName,
+            this._logFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(this._logName,
                                                                                      CreationCollisionOption.OpenIfExists);
 
             // We don't want to write to disk every single time a log event occurs, so let's schedule a
             // thread pool task
-            periodicTimer = ThreadPoolTimer.CreatePeriodicTimer(async (source) =>
+            _periodicTimer = ThreadPoolTimer.CreatePeriodicTimer(async (source) =>
             {
                 await this.FlushAsync().ConfigureAwait(false);
             }, TimeSpan.FromSeconds(this._writeIntervalInSeconds));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public string GetLogName()
         {
-            return this.logName;
+            return this._logName;
         }
 
         /// <summary>
@@ -83,16 +78,16 @@ namespace WinStore.Logging
         {
             try
             {
-                await this.semaphore.WaitAsync().ConfigureAwait(false);
-                if (logLines.Count > 0)
+                await this._semaphore.WaitAsync().ConfigureAwait(false);
+                if (_logLines.Count > 0)
                 {
-                    await FileIO.AppendLinesAsync(logFile, logLines);
-                    logLines = new List<string>();
+                    await FileIO.AppendLinesAsync(_logFile, _logLines);
+                    _logLines = new List<string>();
                 }
             }
             finally
             {
-                this.semaphore.Release();
+                this._semaphore.Release();
             }
         }
 
@@ -109,7 +104,7 @@ namespace WinStore.Logging
                 payload = eventData.Payload[0].ToString();
             }
 
-            string timeStamp = string.Format(this.timeFormat, DateTime.Now);
+            string timeStamp = string.Format(this._timeFormat, DateTime.Now);
             string threadInfo = string.Format("Thread:{0}", Environment.CurrentManagedThreadId);
             var eventInfo = String.Format("{0},{1},{2},{3}",
                                           timeStamp,
@@ -123,8 +118,8 @@ namespace WinStore.Logging
         {
             try
             {
-                await this.semaphore.WaitAsync().ConfigureAwait(false);
-                logLines.Add(eventInfo);
+                await this._semaphore.WaitAsync().ConfigureAwait(false);
+                _logLines.Add(eventInfo);
             }
             catch (Exception)
             {
@@ -132,12 +127,10 @@ namespace WinStore.Logging
             }
             finally
             {
-                this.semaphore.Release();
+                this._semaphore.Release();
             }
         } 
 
-#if TEST
-#endif
         #endregion
     }
 }

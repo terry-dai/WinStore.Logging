@@ -4,8 +4,6 @@ namespace WinStore.Logging
 {
     public sealed class LogEventSource : EventSource
     {
-        private static readonly LogEventSource LogSource = new LogEventSource();
-
         public const int VerboseLevel = (int)EventLevel.Verbose, InformationalLevel = (int)EventLevel.Informational, WarningLevel = (int)EventLevel.Warning, ErrorLevel = (int)EventLevel.Error, CriticalLevel = (int)EventLevel.Critical;
 
         [Event(VerboseLevel, Level = EventLevel.Verbose)]
